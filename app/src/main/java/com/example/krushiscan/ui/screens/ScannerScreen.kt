@@ -19,11 +19,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.krushiscan.api.ApiClient
 import com.example.krushiscan.viewmodel.KrushiViewModel
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.Response
+import java.io.IOException
 
 @Composable
 fun ScannerScreen(viewModel: KrushiViewModel) {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var uploading by remember { mutableStateOf(false) }
+    var predictionResult by remember { mutableStateOf<String?>(null) }
+
     val cropDisease by viewModel.cropDisease.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
@@ -31,7 +39,10 @@ fun ScannerScreen(viewModel: KrushiViewModel) {
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         imageUri = uri
+        predictionResult = null
     }
+
+    val apiClient = remember { ApiClient() }
 
     Column(
         modifier = Modifier
@@ -47,9 +58,9 @@ fun ScannerScreen(viewModel: KrushiViewModel) {
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
         )
-        
+
         Spacer(modifier = Modifier.height(24.dp))
-        
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -76,25 +87,65 @@ fun ScannerScreen(viewModel: KrushiViewModel) {
                 }
             }
         }
-        
+
         Spacer(modifier = Modifier.height(24.dp))
-        
+
         Button(
-            onClick = { viewModel.mockScan() },
-            enabled = !isLoading, // Enabled for demo even if image not selected manually
-            modifier = Modifier.fillMaxWidth().height(56.dp),
+            onClick = {
+                imageUri?.let { uri ->
+                    uploading = true
+                    // Convert Uri to real path (you might need your utility function)
+                    val path = uri.path ?: ""
+                    apiClient.uploadImage(path, object : Callback {
+                        override fun onFailure(call: Call, e: IOException) {
+                            uploading = false
+                            predictionResult = "Upload failed: ${e.message}"
+                        }
+
+                        override fun onResponse(call: Call, response: Response) {
+                            uploading = false
+                            predictionResult = response.body?.string()
+                        }
+                    })
+                }
+            },
+            enabled = imageUri != null && !uploading,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
             shape = RoundedCornerShape(16.dp)
         ) {
-            if (isLoading) {
+            if (uploading) {
                 CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
             } else {
                 Text("Analyze Crop", fontSize = 18.sp)
             }
         }
-        
+
         Spacer(modifier = Modifier.height(24.dp))
-        
+
+        predictionResult?.let {
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Text(
+                        text = "Prediction Result",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(it, fontSize = 16.sp, color = Color.DarkGray)
+                }
+            }
+        }
+
         cropDisease?.let {
+            Spacer(modifier = Modifier.height(24.dp))
             ResultCard(it.cropName, it.disease, it.confidence, it.treatment)
         }
     }
@@ -109,7 +160,12 @@ fun ResultCard(name: String, disease: String, confidence: Float, treatment: Stri
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            Text(text = "Diagnosis Result", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = MaterialTheme.colorScheme.primary)
+            Text(
+                text = "Diagnosis Result",
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                color = MaterialTheme.colorScheme.primary
+            )
             Spacer(modifier = Modifier.height(12.dp))
             ResultRow("Crop:", name)
             ResultRow("Disease:", disease)
@@ -117,9 +173,19 @@ fun ResultCard(name: String, disease: String, confidence: Float, treatment: Stri
             Spacer(modifier = Modifier.height(12.dp))
             Divider(color = Color.LightGray, thickness = 1.dp)
             Spacer(modifier = Modifier.height(12.dp))
-            Text(text = "Treatment Plan:", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.secondary)
+            Text(
+                text = "Treatment Plan:",
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.secondary
+            )
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = treatment, fontSize = 14.sp, color = Color.DarkGray, lineHeight = 20.sp)
+            Text(
+                text = treatment,
+                fontSize = 14.sp,
+                color = Color.DarkGray,
+                lineHeight = 20.sp
+            )
         }
     }
 }
@@ -127,7 +193,16 @@ fun ResultCard(name: String, disease: String, confidence: Float, treatment: Stri
 @Composable
 fun ResultRow(label: String, value: String) {
     Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-        Text(text = label, fontWeight = FontWeight.Bold, modifier = Modifier.width(100.dp), color = Color.Gray)
-        Text(text = value, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+        Text(
+            text = label,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.width(100.dp),
+            color = Color.Gray
+        )
+        Text(
+            text = value,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
