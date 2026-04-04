@@ -141,6 +141,10 @@ fun MainApp(viewModel: KrushiViewModel) {
             composable("splash") { SplashScreen(navController) }
             composable("login") { LoginScreen(navController) }
             composable("signup") { SignUpScreen(navController) }
+            composable("verify_otp/{email}") { backStackEntry ->
+                val email = backStackEntry.arguments?.getString("email") ?: ""
+                VerifyOtpScreen(navController, email)
+            }
             composable(Screen.Home.route) { HomeScreen(navController) }
             composable(Screen.Scanner.route) { ScannerScreen(viewModel) }
             composable(Screen.Dashboard.route) { DashboardScreen(viewModel) }

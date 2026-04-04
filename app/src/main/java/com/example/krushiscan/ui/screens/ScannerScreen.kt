@@ -1,5 +1,6 @@
 package com.example.krushiscan.ui.screens
 
+import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,19 +16,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.krushiscan.api.ApiClient
 import com.example.krushiscan.viewmodel.KrushiViewModel
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.Response
-import java.io.IOException
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 @Composable
 fun ScannerScreen(viewModel: KrushiViewModel) {
+    val context = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var uploading by remember { mutableStateOf(false) }
     var predictionResult by remember { mutableStateOf<String?>(null) }
@@ -41,8 +42,6 @@ fun ScannerScreen(viewModel: KrushiViewModel) {
         imageUri = uri
         predictionResult = null
     }
-
-    val apiClient = remember { ApiClient() }
 
     Column(
         modifier = Modifier
@@ -94,28 +93,36 @@ fun ScannerScreen(viewModel: KrushiViewModel) {
             onClick = {
                 imageUri?.let { uri ->
                     uploading = true
-                    // Convert Uri to real path (you might need your utility function)
-                    val path = uri.path ?: ""
-                    apiClient.uploadImage(path, object : Callback {
-                        override fun onFailure(call: Call, e: IOException) {
+                    try {
+                        val inputStream = context.contentResolver.openInputStream(uri)
+                        val bytes = inputStream?.readBytes()
+                        inputStream?.close()
+                        
+                        if (bytes != null) {
+                            val requestBody = bytes.toRequestBody("image/*".toMediaTypeOrNull())
+                            val imagePart = MultipartBody.Part.createFormData(
+                                "image",
+                                "image.jpg",
+                                requestBody
+                            )
+                            viewModel.uploadCropImage(imagePart)
+                        } else {
+                            predictionResult = "Failed to read image"
                             uploading = false
-                            predictionResult = "Upload failed: ${e.message}"
                         }
-
-                        override fun onResponse(call: Call, response: Response) {
-                            uploading = false
-                            predictionResult = response.body?.string()
-                        }
-                    })
+                    } catch (e: Exception) {
+                        predictionResult = "Upload failed: ${e.message}"
+                        uploading = false
+                    }
                 }
             },
-            enabled = imageUri != null && !uploading,
+            enabled = imageUri != null && !uploading && !isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(16.dp)
         ) {
-            if (uploading) {
+            if (uploading || isLoading) {
                 CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
             } else {
                 Text("Analyze Crop", fontSize = 18.sp)
@@ -169,7 +176,7 @@ fun ResultCard(name: String, disease: String, confidence: Float, treatment: Stri
             Spacer(modifier = Modifier.height(12.dp))
             ResultRow("Crop:", name)
             ResultRow("Disease:", disease)
-            ResultRow("Accuracy:", "${(confidence * 100).toInt()}%")
+            ResultRow("Accuracy:", "${confidence.toInt()}%")
             Spacer(modifier = Modifier.height(12.dp))
             Divider(color = Color.LightGray, thickness = 1.dp)
             Spacer(modifier = Modifier.height(12.dp))

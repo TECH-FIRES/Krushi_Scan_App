@@ -5,8 +5,8 @@ import okhttp3.MultipartBody
 import retrofit2.http.*
 
 interface ApiService {
-    @Multipart()
-    @POST("upload-image")
+    @Multipart
+    @POST("api/ai-predict")
     suspend fun uploadImage(
         @Part image: MultipartBody.Part
     ): CropDisease
