@@ -32,16 +32,16 @@ fun MarketScreen() {
             .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Market Intelligence",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
         )
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         Card(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             shape = RoundedCornerShape(16.dp),
@@ -53,9 +53,9 @@ fun MarketScreen() {
                 Text("Market is currently Bullish for Grains", fontWeight = FontWeight.Medium)
             }
         }
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             items(marketItems) { item ->
                 MarketItemCard(item)

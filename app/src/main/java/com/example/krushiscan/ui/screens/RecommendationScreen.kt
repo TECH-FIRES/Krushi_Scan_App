@@ -35,16 +35,16 @@ fun RecommendationScreen(viewModel: KrushiViewModel) {
             .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Smart Recommendations",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
         )
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
@@ -57,7 +57,7 @@ fun RecommendationScreen(viewModel: KrushiViewModel) {
                     RecItem("Disease Risk", data.diseaseRisk, Icons.Default.Warning, Color(0xFFFF9800)),
                     RecItem("Weather Advice", data.weatherAdvice, Icons.Default.WbSunny, Color(0xFFFFC107))
                 )
-                
+
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.fillMaxWidth()

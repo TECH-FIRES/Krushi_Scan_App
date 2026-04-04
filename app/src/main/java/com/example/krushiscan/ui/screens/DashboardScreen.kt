@@ -29,7 +29,7 @@ data class StatItem(val label: String, val value: String, val icon: ImageVector,
 @Composable
 fun DashboardScreen(viewModel: KrushiViewModel) {
     val sensorData by viewModel.sensorData.collectAsState()
-    
+
     LaunchedEffect(Unit) {
         viewModel.fetchSensorData()
     }
@@ -40,26 +40,26 @@ fun DashboardScreen(viewModel: KrushiViewModel) {
             .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Field Dashboard",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
         )
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         // Default values if API fails/is empty for demo
         val displayData = sensorData ?: com.example.krushiscan.models.SensorData(30f, 35f, 70f, 6.5f)
-        
+
         val stats = listOf(
             StatItem("Moisture", "${displayData.soilMoisture}%", Icons.Default.WaterDrop, Color(0xFF2196F3)),
             StatItem("Temp", "${displayData.temperature}°C", Icons.Default.DeviceThermostat, Color(0xFFFF5722)),
             StatItem("Humidity", "${displayData.humidity}%", Icons.Default.Cloud, Color(0xFF00BCD4)),
             StatItem("pH Level", "${displayData.ph}", Icons.Default.Science, Color(0xFF9C27B0))
         )
-        
+
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -70,18 +70,18 @@ fun DashboardScreen(viewModel: KrushiViewModel) {
                 StatCard(item)
             }
         }
-        
+
         Spacer(modifier = Modifier.height(24.dp))
-        
+
         Text(
             text = "Moisture Trend",
             fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onBackground
         )
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         Card(
             modifier = Modifier.fillMaxWidth().weight(1f),
             shape = RoundedCornerShape(16.dp),

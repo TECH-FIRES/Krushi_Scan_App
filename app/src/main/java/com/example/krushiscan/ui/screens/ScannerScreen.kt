@@ -36,6 +36,13 @@ fun ScannerScreen(viewModel: KrushiViewModel) {
     val cropDisease by viewModel.cropDisease.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
+    // Reset uploading flag whenever isLoading goes false
+    LaunchedEffect(isLoading) {
+        if (!isLoading) {
+            uploading = false
+        }
+    }
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -97,7 +104,7 @@ fun ScannerScreen(viewModel: KrushiViewModel) {
                         val inputStream = context.contentResolver.openInputStream(uri)
                         val bytes = inputStream?.readBytes()
                         inputStream?.close()
-                        
+
                         if (bytes != null) {
                             val requestBody = bytes.toRequestBody("image/*".toMediaTypeOrNull())
                             val imagePart = MultipartBody.Part.createFormData(

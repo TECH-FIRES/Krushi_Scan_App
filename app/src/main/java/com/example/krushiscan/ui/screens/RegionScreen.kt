@@ -21,10 +21,10 @@ import androidx.compose.ui.unit.sp
 fun RegionScreen() {
     val states = listOf("Karnataka", "Punjab", "Odisha", "Maharashtra", "Tamil Nadu")
     val districts = listOf("Bangalore", "Mysore", "Hubli", "Mangalore")
-    
+
     var selectedState by remember { mutableStateOf(states[0]) }
     var selectedDistrict by remember { mutableStateOf(districts[0]) }
-    
+
     var stateExpanded by remember { mutableStateOf(false) }
     var districtExpanded by remember { mutableStateOf(false) }
 
@@ -34,16 +34,16 @@ fun RegionScreen() {
             .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Region Intelligence",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
         )
-        
+
         Spacer(modifier = Modifier.height(24.dp))
-        
+
         Text("Select State", fontWeight = FontWeight.Medium)
         ExposedDropdownMenuBox(
             expanded = stateExpanded,
@@ -73,9 +73,9 @@ fun RegionScreen() {
                 }
             }
         }
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         Text("Select District", fontWeight = FontWeight.Medium)
         ExposedDropdownMenuBox(
             expanded = districtExpanded,
@@ -105,18 +105,18 @@ fun RegionScreen() {
                 }
             }
         }
-        
+
         Spacer(modifier = Modifier.height(32.dp))
-        
+
         Text(
             text = "Recommended for $selectedDistrict, $selectedState",
             fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.primary
         )
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
